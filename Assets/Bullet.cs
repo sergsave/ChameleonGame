@@ -19,6 +19,8 @@ public class Bullet : MonoBehaviour
     
     SpriteRenderer spriteRenderer;
 
+    Vector2 startPosition;
+
     public void Shoot(Vector2 direction, System.Action callback) 
     {
         if (moveState != MoveState.Stop)
@@ -33,6 +35,7 @@ public class Bullet : MonoBehaviour
     void Start()
     {
         spriteRenderer = GetComponent<SpriteRenderer>();
+        startPosition = transform.localPosition; // Надо придумать способ получше. Нужно нормально позиционирование.
     }
 
     // Update is called once per frame
@@ -41,11 +44,11 @@ public class Bullet : MonoBehaviour
         const int speed = 30;
 
         // При таких тупых проверках шарик будет возрвращаться не точно в изначальное положение
-        const float maxLength = 10;
+        const float maxLength = 15;
         const float minLenght = 0;
 
         System.Func<Vector2, float> relativeLength = position => 
-            position.magnitude * (Vector2.Dot(movingVector, position) > 0 ? 1 : -1);
+            (position - startPosition).magnitude * (Vector2.Dot(movingVector, (position - startPosition)) > 0 ? 1 : -1);
 
         switch (moveState)
         {
