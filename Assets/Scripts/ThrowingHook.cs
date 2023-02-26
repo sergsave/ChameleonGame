@@ -7,6 +7,12 @@ public class ThrowingHook : MonoBehaviour
 
     [SerializeField] private string targetTag = "";
 
+    public enum HookState
+    {
+        Catched,
+        Hooked
+    };
+
     private enum MoveState
     {
         Stop,
@@ -14,14 +20,17 @@ public class ThrowingHook : MonoBehaviour
         Backward
     }
 
-    private Vector2 _startPosition;
+    private Vector3 _startPosition;
+    private Vector3 _endPosition;
+
     private Vector2 _movingVector;
-    private System.Action _throwCallback;
+
+    private System.Action<GameObject, HookState> _throwCallback;
     private MoveState _moveState = MoveState.Stop;
     private GameObject _collidedWith = null;
 
-    // Может как-то можно на корутины переделать??
-    public void Throw(Vector2 direction, System.Action callback)
+    // TODO: use coroutines?
+    public void Throw(Vector2 direction, System.Action<GameObject, HookState> callback)
     {
         if (_moveState != MoveState.Stop)
             return;
@@ -29,19 +38,14 @@ public class ThrowingHook : MonoBehaviour
         _movingVector = direction;
         _throwCallback = callback;
         _moveState = MoveState.Forward;
-    }
 
-    void Start()
-    {
-        //spriteRenderer = GetComponent<SpriteRenderer>();
         _startPosition = transform.localPosition;
+        _endPosition = _startPosition + (Vector3)_movingVector * maxLength;
     }
 
     void Update()
     {
-        // При таких тупых проверках шарик будет возвращаться не точно в изначальное положение
-        System.Func<Vector2, float> relativeLength = position =>
-            (position - _startPosition).magnitude * (Vector2.Dot(_movingVector, (position - _startPosition)) > 0 ? 1 : -1);
+        System.Func<Vector2> MovingDelta = () => _movingVector * speed * Time.deltaTime;
 
         switch (_moveState)
         {
@@ -49,31 +53,27 @@ public class ThrowingHook : MonoBehaviour
                 break;
             case MoveState.Forward:
                 {
-                    if (relativeLength(transform.localPosition) > maxLength)
+                    if (UpdatePosition(MovingDelta()) == UpdateResult.Bounded || _collidedWith)
+                    {
                         _moveState = MoveState.Backward;
-                    else
-                        transform.Translate(_movingVector * speed * Time.deltaTime);
+                    }
                     break;
                 }
             case MoveState.Backward:
                 {
-                    if (relativeLength(transform.localPosition) < 0)
+                    if (UpdatePosition(-MovingDelta()) == UpdateResult.Bounded)
                     {
                         _moveState = MoveState.Stop;
 
-                        // TODO: Может лучше не здесь? Все-таки не связано с притягиванием
-                        if (_collidedWith)
-                            Destroy(_collidedWith);
-
                         if (_throwCallback != null)
-                            _throwCallback();
+                        {
+                            _throwCallback(_collidedWith, HookState.Hooked);
+                            _collidedWith = null;
+                        }
 
                         _movingVector = Vector2.zero;
                         _throwCallback = null;
                     }
-                    else
-                        transform.Translate(-_movingVector * speed * Time.deltaTime);
-
                     break;
                 }
             default:
@@ -82,11 +82,9 @@ public class ThrowingHook : MonoBehaviour
 
         if (_collidedWith)
         {
+            // TODO: offset?
             Vector3 newPosition = transform.position;
-            Vector3 offset = _movingVector; //  * _spriteRenderer.bounds.size; Как здесь обойтись без spriteRender???
-            offset.z = newPosition.z;
-            newPosition += offset;
-
+            newPosition.z = _collidedWith.transform.position.z;
             _collidedWith.transform.position = newPosition;
         }
     }
@@ -96,8 +94,40 @@ public class ThrowingHook : MonoBehaviour
         if (_moveState == MoveState.Forward && !_collidedWith && col.gameObject.tag == targetTag)
         {
             _collidedWith = col.gameObject;
-            // TODO: меньше конкретики у таргета
-            _collidedWith.GetComponent<MovableTarget>().moveState = MovableTarget.MoveState.Stop;
+
+            if (_throwCallback != null)
+                _throwCallback(_collidedWith, HookState.Catched);
         }
+    }
+
+    private float SignedLength(Vector3 position)
+    {
+        Vector2 resultVector = position - _startPosition;
+        float sign = Mathf.Sign(Vector2.Dot(_movingVector, resultVector));
+        return resultVector.magnitude * sign;
+    }
+
+    private enum UpdateResult
+    {
+        Updated,
+        Bounded
+    };
+
+    private UpdateResult UpdatePosition(Vector3 delta)
+    {
+        Vector3 newPosition = transform.localPosition + delta;
+        float length = SignedLength(newPosition);
+
+        UpdateResult result = UpdateResult.Bounded;
+
+        if (Mathf.Approximately(length, 0) || length < 0)
+            newPosition = _startPosition;
+        else if (Mathf.Approximately(length, maxLength) || length > maxLength)
+            newPosition = _endPosition;
+        else
+            result = UpdateResult.Updated;
+
+        transform.localPosition = newPosition;
+        return result;
     }
 }

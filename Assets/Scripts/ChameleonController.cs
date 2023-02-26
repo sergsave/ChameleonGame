@@ -15,7 +15,6 @@ public class ChameleonController : MonoBehaviour
 
     void Start()
     {
-        // Может не в этом скрипте??
         _animator = GetComponent<Animator>();
     }
 
@@ -24,12 +23,26 @@ public class ChameleonController : MonoBehaviour
         if (_state == State.Stop && Input.GetMouseButtonDown(0))
         {
             _state = State.InProcess;
-            _animator.Play("OpenMouth", -1, 1f); // TODO: Это какой-то подбор таймингов, исправить
+            // TODO: Remove hardcode!
+            _animator.Play("OpenMouth", -1, 1f);
 
-            hook.Throw(Vector2.up, () =>
+            hook.Throw(Vector2.up, (hookedObject, hookState) =>
             {
-                _state = State.Stop;
-                _animator.Play("CloseMouth");
+                switch (hookState)
+                {
+                    case ThrowingHook.HookState.Catched:
+                        BackForthMove target = hookedObject.GetComponent<BackForthMove>();
+                        if (target)
+                            target.moveState = BackForthMove.MoveState.Stop;
+                        break;
+                    case ThrowingHook.HookState.Hooked:
+                        _state = State.Stop;
+                        _animator.Play("CloseMouth");
+                        Destroy(hookedObject);
+                        break;
+                    default:
+                        break;
+                }
             });
         }
     }

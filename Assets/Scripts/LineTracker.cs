@@ -9,6 +9,7 @@ public class LineTracker : MonoBehaviour
     void Start()
     {
         _lineRenderer = GetComponent<LineRenderer>();
+        Debug.Assert(_lineRenderer.positionCount == 2, "Need two points for tracking");
     }
 
     void Update()
