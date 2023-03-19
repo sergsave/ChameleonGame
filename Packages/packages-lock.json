@@ -1,5 +1,13 @@
 {
   "dependencies": {
+    "com.aniruddhahar.unity-autosave": {
+      "version": "file:com.aniruddhahar.unity-autosave",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {
+        "com.unity.editorcoroutines": "1.0.0"
+      }
+    },
     "com.unity.2d.animation": {
       "version": "7.0.9",
       "depth": 1,
@@ -111,6 +119,13 @@
       "dependencies": {
         "com.unity.mathematics": "1.2.1"
       },
+      "url": "https://packages.unity.com"
+    },
+    "com.unity.editorcoroutines": {
+      "version": "1.0.0",
+      "depth": 0,
+      "source": "registry",
+      "dependencies": {},
       "url": "https://packages.unity.com"
     },
     "com.unity.ext.nunit": {
