@@ -2,6 +2,8 @@ using UnityEngine;
 
 public class ChameleonController : MonoBehaviour
 {
+    public bool isControllable = false;
+
     [SerializeField] private ThrowingHook hook;
 
     private enum State
@@ -20,7 +22,7 @@ public class ChameleonController : MonoBehaviour
 
     void Update()
     {
-        if (_state == State.Stop && Input.GetMouseButtonDown(0))
+        if (isControllable && _state == State.Stop && Input.GetMouseButtonDown(0))
         {
             _state = State.InProcess;
             // TODO: Remove hardcode!
