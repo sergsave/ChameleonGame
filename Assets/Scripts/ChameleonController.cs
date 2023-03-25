@@ -26,7 +26,10 @@ public class ChameleonController : MonoBehaviour
 
     void Update()
     {
-        if (!isControllable || _state != State.Stop || !Input.GetMouseButtonDown(0))
+        if (_state != State.Stop)
+            return;
+
+        if (!isControllable || !Input.GetMouseButtonDown(0))
             return;
 
         _state = State.InProcess;
