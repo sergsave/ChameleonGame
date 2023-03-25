@@ -7,10 +7,12 @@ public class ThrowingHook : MonoBehaviour
 
     [SerializeField] private string targetTag = "";
 
-    public enum HookState
+    public enum HookEvent
     {
+        Started,
         Catched,
-        Hooked
+        Missed,
+        Finished
     };
 
     private enum MoveState
@@ -25,12 +27,12 @@ public class ThrowingHook : MonoBehaviour
 
     private Vector2 _movingVector;
 
-    private System.Action<GameObject, HookState> _throwCallback;
+    private System.Action<GameObject, HookEvent> _throwCallback;
     private MoveState _moveState = MoveState.Stop;
     private GameObject _collidedWith = null;
 
     // TODO: use coroutines?
-    public void Throw(Vector2 direction, System.Action<GameObject, HookState> callback)
+    public void Throw(Vector2 direction, System.Action<GameObject, HookEvent> callback)
     {
         if (_moveState != MoveState.Stop)
             return;
@@ -41,6 +43,8 @@ public class ThrowingHook : MonoBehaviour
 
         _startPosition = transform.localPosition;
         _endPosition = _startPosition + (Vector3)_movingVector * maxLength;
+
+        NotifyEvent(HookEvent.Started);
     }
 
     void Update()
@@ -53,7 +57,14 @@ public class ThrowingHook : MonoBehaviour
                 break;
             case MoveState.Forward:
                 {
-                    if (UpdatePosition(MovingDelta()) == UpdateResult.Bounded || _collidedWith)
+                    bool bounded = UpdatePosition(MovingDelta()) == UpdateResult.Bounded;
+
+                    if (_collidedWith)
+                        NotifyEvent(HookEvent.Catched);
+                    else if (bounded)
+                        NotifyEvent(HookEvent.Missed);
+
+                    if (bounded || _collidedWith)
                     {
                         _moveState = MoveState.Backward;
                     }
@@ -65,12 +76,9 @@ public class ThrowingHook : MonoBehaviour
                     {
                         _moveState = MoveState.Stop;
 
-                        if (_throwCallback != null)
-                        {
-                            _throwCallback(_collidedWith, HookState.Hooked);
-                            _collidedWith = null;
-                        }
+                        NotifyEvent(HookEvent.Finished);
 
+                        _collidedWith = null;
                         _movingVector = Vector2.zero;
                         _throwCallback = null;
                     }
@@ -94,9 +102,6 @@ public class ThrowingHook : MonoBehaviour
         if (_moveState == MoveState.Forward && !_collidedWith && col.gameObject.tag == targetTag)
         {
             _collidedWith = col.gameObject;
-
-            if (_throwCallback != null)
-                _throwCallback(_collidedWith, HookState.Catched);
         }
     }
 
@@ -130,4 +135,11 @@ public class ThrowingHook : MonoBehaviour
         transform.localPosition = newPosition;
         return result;
     }
+
+    private void NotifyEvent(HookEvent hookEvent)
+    {
+        if (_throwCallback != null)
+            _throwCallback(_collidedWith, hookEvent);
+    }
+
 }

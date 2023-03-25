@@ -4,6 +4,10 @@ public class ChameleonController : MonoBehaviour
 {
     public bool isControllable = false;
 
+    // TODO: broadcast?
+    public System.Action targetCatchedCallback;
+    public System.Action missedCallback;
+
     [SerializeField] private ThrowingHook hook;
 
     private enum State
@@ -22,30 +26,39 @@ public class ChameleonController : MonoBehaviour
 
     void Update()
     {
-        if (isControllable && _state == State.Stop && Input.GetMouseButtonDown(0))
-        {
-            _state = State.InProcess;
-            // TODO: Remove hardcode!
-            _animator.Play("OpenMouth", -1, 1f);
+        if (!isControllable || _state != State.Stop || !Input.GetMouseButtonDown(0))
+            return;
 
-            hook.Throw(Vector2.up, (hookedObject, hookState) =>
+        _state = State.InProcess;
+        // TODO: Remove hardcode!
+        _animator.Play("OpenMouth", -1, 1f);
+
+        hook.Throw(Vector2.up, (hookedObject, hookState) =>
+        {
+            switch (hookState)
             {
-                switch (hookState)
-                {
-                    case ThrowingHook.HookState.Catched:
-                        BackForthMove target = hookedObject.GetComponent<BackForthMove>();
-                        if (target)
-                            target.moveState = BackForthMove.MoveState.Stop;
-                        break;
-                    case ThrowingHook.HookState.Hooked:
-                        _state = State.Stop;
-                        _animator.Play("CloseMouth");
-                        Destroy(hookedObject);
-                        break;
-                    default:
-                        break;
-                }
-            });
-        }
+                case ThrowingHook.HookEvent.Catched:
+                    BackForthMove target = hookedObject.GetComponent<BackForthMove>();
+                    if (target)
+                        target.moveState = BackForthMove.MoveState.Stop;
+                    break;
+                case ThrowingHook.HookEvent.Finished:
+                    _state = State.Stop;
+                    _animator.Play("CloseMouth");
+
+                    Destroy(hookedObject);
+
+                    if (hookedObject != null && targetCatchedCallback != null)
+                        targetCatchedCallback();
+                    break;
+                case ThrowingHook.HookEvent.Missed:
+                    if (missedCallback != null)
+                        missedCallback();
+                    break;
+                default:
+                    break;
+            }
+        });
+
     }
 }
