@@ -1694,7 +1694,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 9, y: 16}
+  m_SizeDelta: {x: 19.792778, y: 16}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1616675662
 MonoBehaviour:
@@ -2244,7 +2244,7 @@ SpriteRenderer:
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 2
-  m_Size: {x: 9, y: 16}
+  m_Size: {x: 19.792778, y: 16}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
@@ -2331,8 +2331,8 @@ MonoBehaviour:
   scoreLabel: {fileID: 1852769979}
   highScoreLabel: {fileID: 1509514278}
   resultLabel: {fileID: 521084687}
-  firstTargetPosition: {x: -1, y: 2.25}
-  secondTargetPosition: {x: 3, y: 4.45}
+  firstTargetYPosition: 2.25
+  secondTargetYPosition: 4.45
 --- !u!1 &2114207679
 GameObject:
   m_ObjectHideFlags: 0

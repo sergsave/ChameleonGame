@@ -17,8 +17,8 @@ public class MainSceneController : MonoBehaviour
     public TMPro.TMP_Text highScoreLabel;
     public TMPro.TMP_Text resultLabel;
 
-    public Vector2 firstTargetPosition;
-    public Vector2 secondTargetPosition;
+    public float firstTargetYPosition;
+    public float secondTargetYPosition;
 
     private GameObject _firstTarget;
     private GameObject _secondTarget;
@@ -125,8 +125,8 @@ public class MainSceneController : MonoBehaviour
         if (_firstTarget != null || _secondTarget != null)
             return;
 
-        _firstTarget = CreateTarget(firstTargetPosition);
-        _secondTarget = CreateTarget(secondTargetPosition);
+        _firstTarget = CreateTarget(firstTargetYPosition);
+        _secondTarget = CreateTarget(secondTargetYPosition);
     }
 
     private void DestroyTargets()
@@ -140,11 +140,17 @@ public class MainSceneController : MonoBehaviour
             Destroy(_secondTarget);
     }
 
-    private GameObject CreateTarget(Vector2 pos)
+    private GameObject CreateTarget(float yPos)
     {
-        // TODO: Full random range
-        int multiplier = (Random.Range(0, 2) == 1) ? 1 : -1;
-        GameObject target = Instantiate(targetPrefab, new Vector3(multiplier * pos.x, pos.y, 0), Quaternion.identity);
+
+        GameObject target = Instantiate(targetPrefab, new Vector3(0, yPos, 0), Quaternion.identity);
+        BackForthMove backForth = target.GetComponent<BackForthMove>();
+        if (backForth != null)
+        {
+            float xPos = Random.Range(backForth.minX, backForth.maxX);
+            target.transform.position = new Vector3(xPos, yPos, 0);
+        }
+
         target.transform.parent = gameplayFrame.transform;
         return target;
     }
