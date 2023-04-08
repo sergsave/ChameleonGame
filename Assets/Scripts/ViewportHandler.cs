@@ -10,6 +10,7 @@ public class ViewportHandler : MonoBehaviour
 
     private Camera _camera;
 
+    // Sould call before all objects start
     private void Awake()
     {
         _camera = GetComponent<Camera>();

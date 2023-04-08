@@ -5,10 +5,11 @@ public abstract class ResizerToCamera : MonoBehaviour
 {
     public new Camera camera;
 
-    void Awake()
+    void Start()
     {
         UpdateSize();
     }
+
     void Update()
     {
 #if UNITY_EDITOR
