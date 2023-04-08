@@ -39,6 +39,9 @@ public class MainSceneController : MonoBehaviour
 
     void Start()
     {
+        // TODO: battery consumption optimization?
+        Application.targetFrameRate = 60;
+
         _state2visibleObjects = new Dictionary<GameState, List<GameObject>> {
             { GameState.Start, new List<GameObject>() { startCanvas.gameObject }},
             { GameState.Play, new List<GameObject>() { playCanvas.gameObject, gameplayFrame }},
